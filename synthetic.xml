@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+
+    Copyright (c) 2024. All rights reserved.
+
+    This software and all trademarks, trade names, and logos included herein are the property of Catalink and its affiliates, subsidiaries and licensors.
+
+-->
+<!-- Added this comment for generating Steps.json -->
+<synthetic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.xebialabs.com/deployit/synthetic synthetic.xsd"
+           xmlns="http://www.xebialabs.com/deployit/synthetic">
+
+    <type type="CatalinkServiceNow.Server" label="CatalinkServiceNow: Server" extends="configuration.HttpConnection" description="Connection definition for ServiceNow Server">
+        <property name="scriptLocation" default="catalinkservicenow/check_connection.py" hidden="true"/>
+        <property name="changeRecordTableName" label="Change Record Table Name (Required for Generate Release)"
+                  required="false" hidden="true" default="change_request"/>
+        <property name="changeTaskTableName" label="Change Task Table Name (Required for Generate Release)"
+                  required="false" hidden="true" default="change_task"/>
+        <property name="sysparmDisplayValue" label="Retrieve display value" default="True"
+                  kind="boolean" description="If true returns display values for all of the fields." hidden="true"/>
+        <property name="sysparmInputDisplayValue" label="Input values are display values" default="True" hidden="true"
+                  kind="boolean" description="If true treats input values as display values."/>
+        <property name="useServicenowApp" label="Use ServiceNow App"
+                  description="Use the ServiceNow app that can be downloaded in ServiceNow store. If set to false create and update actions will use direct REST API on tables and not the app."
+                  required="false" default="false" kind="boolean"/>
+        <property name="useOAuth" label="Use ServiceNow or External OAuth Resource Server"
+                  description="Use OAuth instead of basic authentication." required="false" category="OAuth"
+                  kind="boolean"/>
+        <property name="oauthServer" label="External OAuth URL" description="Ignore this if the ServiceNow OAuth server is used." required="false"
+                   category="OAuth"/>
+        <property name="oauthServerEndpoint" label="External OAuth Endpoint" description="Ignore this if the ServiceNow OAuth server is used." required="false"
+                   category="OAuth"/>
+        <property name="oauthUsername" label="Username" description="Mandatory if OAuth is enabled." required="false"
+                  category="OAuth"/>
+        <property name="oauthPassword" label="Password" description="Mandatory if OAuth is enabled." required="false"
+                  password="true" category="OAuth"/>
+        <property name="clientId" label="Client Id" description="Mandatory if OAuth is enabled." required="false"
+                  category="OAuth"/>
+        <property name="clientSecret" label="Client Secret" description="Mandatory if OAuth is enabled."
+                  required="false" password="true" category="OAuth"/>
+        <property name="oauthAuthHeader" label="External OAuth Authorization Header" category="OAuth" password="true" required="false" description="External OAuth server authorization header value e.g. Basic dXNlcm5hbWU6cGFzc3dvcmQ=" />
+        <property name="authenticationMethod" kind="enum"
+                  enum-class="com.xebialabs.xlrelease.domain.configuration.HttpConnection$AuthenticationMethod"
+                  hidden="true" default="None">
+            <enum-values>
+                <value>None</value>
+            </enum-values>
+        </property>
+        <property name="domain" default="empty" hidden="true"/>
+        <property name="accessTokenUrl" default="empty" hidden="true"/>
+        <property name="scope" default="empty" hidden="true"/>
+
+        <property name="waitProgressionType" category="Wait for status" kind="enum" default="Exponential">
+            <enum-values>
+                <value>Exponential</value>
+                <value>Custom list</value>
+            </enum-values>
+        </property>
+        <property name="maxTries" category="Wait for status" kind="integer" default="0" description="Maximum number of times to query the status or 0 for no limit" />
+        <property name="waitInterval" category="Wait for status" kind="integer" default="300" description="Wait interval in seconds between tries" />
+        <property name="waitIntervalIncrease" category="Wait for status" default="1.0" description="Ratio between successive interval times" />
+        <property name="waitCustomList" category="Wait for status" kind="list_of_string" required="false" description="List of numTries, waitInterval entries, e.g. 5, 300" />
+
+        <property name="customApiEndpoint" label="API URL Endpoint" category="Custom configuration" required="false"  description="A custom URL endpoint for API calls is a value that will replace '/api/now/table'"/>
+
+    </type>
+
+    <!--
+       #######################################################################################################################
+       #    Basic fields for all types (ServiceNow Base)
+       #    Basic task operations with standard task fields.
+       #######################################################################################################################
+   -->
+
+    <type type="CatalinkServiceNow.Base" extends="xlrelease.PythonScript" virtual="true" description="Abstract base task which can be extended by other tasks">
+        <property name="iconLocation" default="catalinkservicenow/servicenow-icon.png" hidden="true"/>
+        <property name="servicenowServer" category="input" label="Server" referenced-type="CatalinkServiceNow.Server"
+                  required="true" kind="ci"/>
+        <property name="username" category="input" required="false"/>
+        <property name="password" password="true" category="input" required="false"/>
+        <property name="data" category="output" kind="map_string_string"/>
+        <property name="classReload" category="input" default="true" hidden="true" kind="boolean"/>
+    </type>
+
+
+   
+
+
+      <!--
+       #######################################################################################################################
+       #    Change Request Tasks
+       #######################################################################################################################
+   -->
+
+    <type type="CatalinkServiceNow.FindChangeTasksByParent" extends="CatalinkServiceNow.Base"
+          label="ServiceNow: Find one or many Change Tasks by Parent" virtual="false" description="This task is used for finding one or many Change Tasks by Parent in ServiceNow.">
+        <property name="tableName" category="input" label="Table Name" default="change_task" required="true"
+                  hidden="true"/>
+        <property name="scriptLocation" default="catalinkservicenow/find/find_many_by_parent.py" hidden="true"/>
+        <property name="shortDescription" category="input"
+                  description="Multiple tasks can exists, provide the start of the short description to look for."
+                  label="Short Description" required="false"/>
+        <property name="parent" category="input" description="sys_id of the parent change." required="true"/>
+        <property name="indexSysIds" category="output" kind="map_string_string" description="Map of Index Number and Change Task SysIDs"/>
+        <property name="sysIds" category="output" kind="map_string_string" description="Map of Change Task SysID and Short Description"/>
+        <property name="changeTasksRaw" label="Change Tasks Data" category="output" kind="map_string_string" description="Map of Change Task SysID and Change Task JSON raw data"/>
+    </type>
+
+ 
+
+</synthetic>
